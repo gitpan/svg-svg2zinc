@@ -1,4 +1,4 @@
-package ZincExtension;
+package SVGExtension;
 
 #       Zinc methods, usefull at display time of Zinc code generated for SVG file
 # 
@@ -7,7 +7,7 @@ package ZincExtension;
 #
 #	Author: Christophe Mertz <mertz@cena.fr>
 #
-# $Id: SVGExtension.pm,v 1.5 2003/09/10 09:56:44 mertz Exp $
+# $Id: SVGExtension.pm,v 1.6 2003/10/06 15:28:15 mertz Exp $
 #############################################################################
 
 use strict;
@@ -16,7 +16,7 @@ use Carp;
 
 use vars qw( $VERSION );
 
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
 
 # To implement SVG viewport.
 # This method must be called when dispalying zinc objects, because the bbox of

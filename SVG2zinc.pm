@@ -12,7 +12,7 @@ package SVG::SVG2zinc;
 #          Celine Schlienger <celine@intuilab.com>
 #          Stéphane Chatty <chatty@intuilab.com>
 #
-# $Id: SVG2zinc.pm,v 1.31 2003/09/18 08:36:37 mertz Exp $
+# $Id: SVG2zinc.pm,v 1.35 2003/10/17 08:34:42 mertz Exp $
 #############################################################################
 #
 # this is the main module of the a converter from SVG file
@@ -30,13 +30,15 @@ use Math::Trig;
 use Tk::PNG;
 use Tk::JPEG;
 use English;
+use File::Basename;
 
 use SVG::SVG2zinc::Conversions;
 
-use vars qw($VERSION $REVISION);
+use vars qw($VERSION $REVISION @ISA @EXPORT);
+@EXPORT = qw( parsefile findINC);
 
-$REVISION = q$Revision: 1.31 $ ;
-$VERSION = "0.06";
+$REVISION = q$Revision: 1.35 $ ;
+$VERSION = "0.07";
 
 # to suppress some stupid warning usefull for debugging only
 my $warn=0;
@@ -51,7 +53,6 @@ my @prev_contexts = ();
 my $itemCount = 0;
 my $effectiveItemCount = 0;  # to know if some groups are empty (cf &defs et &defs_)
 my $prefix;                  # prefix used in tags associated to generated items
-my $zinc_version;
 my $colorSep = ";";
 
 sub InitVars {
@@ -61,7 +62,6 @@ sub InitVars {
     
     $itemCount = 0;
     $effectiveItemCount = 0;
-    $zinc_version = "3.2.94";
     $colorSep = ";";
 }
 
@@ -117,75 +117,56 @@ my $fileDir; ## in fact this could be a part of an url
 my $backend; ## the backend used to produce/interpret  perl or tcl or whatever...
 
 my $expat;
-sub parse {
-    my ($file, %args) = @_;
+sub parsefile {
+    my ($svgfile, $backendName, %args) = @_;
 
     # some init
     &InitVars;
-    ($fileDir) = $file =~ /(.*\/).+/;
-    $fileDir = "" unless defined $fileDir;
-    
-    # 0, "\$zinc" or filename, defaulted to 0
-    my $result_type = defined $args{-result_type} ? $args{-result_type} : 0;
+    $fileDir = dirname($svgfile)."/";
     
     # the group where to create items, defaulted to 1
-    $current_group = defined $args{-group} ? $args{-group} : 1;
+#    $current_group = defined $args{-group} ? $args{-group} : 1;
 
-    # zinc version, (had been used for gradients only)
-    $zinc_version = $args{-zinc_version} if defined $args{-zinc_version} ;
-    print "# ZINC_VERSION=$zinc_version\n";
-    
     # verbosity, defaulted to 0
-    $verbose = defined $args{-verbosity} ? $args{-verbose}: 0;
+    $verbose = defined $args{-verbose} ? $args{-verbose}: 0;
 
-    # init of the preifx used to prefix tags. defaulted to the empty string
+    # init of the prefix used to prefix tags. defaulted to the empty string
     $prefix =  defined $args{-prefix} ? $args{-prefix} : "";
+    delete $args{-prefix}; # this option is not propagated to Backend
 
     # should we treat XML namespace?
     my $namespace = defined $args{-namespace} ? $args{-namespace} : 0;
+    delete $args{-namespace}; # this option is not propagated to Backend
     
-    my ($filetype) = $result_type =~ /.*\.(\w+)$/;
-
     ## init of some global variables used by Conversions.pm
-    &SVG::SVG2zinc::Conversions::InitConv(\&myWarn, \&current_line, $zinc_version);
+    &SVG::SVG2zinc::Conversions::InitConv(\&myWarn, \&current_line);
 
-    if ($result_type eq 0) {
-	## the resulting TkZinc code will just be printed, mainly for debug purpose
-	require SVG::SVG2zinc::Backend::Print;
-	$backend = SVG::SVG2zinc::Backend::Print->new(-svgfile => $file);
-    } elsif ($result_type =~ /^\$\w+/) {
-	## $result_type == a variable supposely pointing to a TkZinc instance
-	## items will be created in this TkZinc instance
-	require SVG::SVG2zinc::Backend::Exec;
-	$backend = SVG::SVG2zinc::Backend::Exec->new(-svgfile => $file,
-						-svg2zincversion => $VERSION,
-						-zincversion => $zinc_version,
-						-verbose => $verbose,
-						-zinc_var => $result_type,
-						);
-    } elsif ($filetype eq 'pm') {
-	## generating a file (either a script or a module)
-	require SVG::SVG2zinc::Backend::PerlModule;
-	$backend = SVG::SVG2zinc::Backend::PerlModule->new(-svgfile => $file,
-						      -svg2zincversion => $VERSION,
-						      -zincversion => $zinc_version,
-						      -outfile => $result_type,
-						      );
-
-    } elsif ($filetype eq 'pl') {
-	require SVG::SVG2zinc::Backend::PerlScript;
-	$backend = SVG::SVG2zinc::Backend::PerlScript->new(-svgfile => $file,
-						      -svg2zincversion => $VERSION,
-						      -zincversion => $zinc_version,
-						      -outfile => $result_type,
-						      );
-	$current_group = 1;
-
-    } elsif ($filetype eq 'tcl') {
-	croak "tcl backend not yet implemented\n";
+    my $module = $backendName;
+    $module =~ s!::!\/!g ;
+    eval {require "SVG/SVG2zinc/Backend/$module.pm"};
+    if ($@) {
+	# SVG/SVG2zinc/Backend/$module.pm not found (or may be error?!)
+	    print "$@\n";
+	if ($@ =~ /^syntax/) {
+	    print "$@\n";
+	    exit;
+	}
+	eval {require "$module.pm"};
+	if ($@) {
+	    print "$@\n";
+	    croak ("$backendName not found as a module or as SVG::SVG2zinc::Backend::$backendName");
+	}
     } else {
-	croak "unknown file type: .$filetype";
+	# SVG/SVG2zinc/Backend/$module.pm was found
+	$backendName = "SVG::SVG2zinc::Backend::".$backendName;
     }
+
+    my $params = "-in => $svgfile," . (join ", ", %args);
+    my $command = "$backendName->new($params)";
+    $backend=$backendName->new(-in => $svgfile, %args);
+
+    $current_group = 1; # CM10 !!
+    
     $backend->fileHeader;
     my $parser = new XML::Parser(
 				 Style => 'SVG2zinc',
@@ -198,10 +179,10 @@ sub parse {
 			 Final   => \&Final,
 			 XMLDecl => \&XMLDecl,
 			 );
-    my $svg=$parser->parsefile($file);
+    my $svg=$parser->parsefile($svgfile);
     $backend->fileTail;
     &print_warning_for_not_implemented_attr;
-} # end of parse
+} # end of parsefile
 
 ## as it seems that some svg files are using differencies between dtd 1.0 and 1.1
 ## we need to know which version of the dtd we are using (defaulted to 1.0)
@@ -219,12 +200,27 @@ sub XMLDecl {
 
 
 
+# the svg tags are translated in group items.
+# If the SVG tag contains both width and height properties
+# they will be reported in the generated group as tags :
+# 'height=xxx' 'width=xxx'
 sub svg {
     my ($parser, $elementname, %attrs) = @_;
     %attrs = &expandAttributes ($elementname,%attrs);
     my ($name,$natural) = &name ($elementname, $attrs{id});
     delete $attrs{xmlns}; # this attribute is mandatory, but useless for SVG2zinc
-    my $res = "->add('group',$current_group, -tags => [$name], -priority => 10";
+
+    my ($width,$height)=&sizesConvert( \%attrs , qw (width height)); #! this defines the Zinc size!
+    # case when the width or height is defined in %
+    # the % refers to the size of an including document
+    undef $width if defined $attrs{width} and $attrs{width} =~ /%/ ;
+    undef $height if defined $attrs{height} and $attrs{height}=~ /%/ ;
+    my $widthHeightTags="";
+    if (defined $width and defined $height) {
+	$widthHeightTags = ", 'width=$width', 'height=$height'";
+    }
+    
+    my $res = "->add('group',$current_group, -tags => [$name$widthHeightTags], -priority => 10";
     unshift @prev_contexts, \%current_context;
     my $prop;
     ($prop, %current_context) = &groupContext ($name, %attrs);
@@ -232,11 +228,6 @@ sub svg {
     
     unshift @prev_groups, $current_group;
     $current_group = $name;
-    my ($width,$height)=&sizesConvert( \%attrs , qw (width height)); #! this defines the Zinc size!
-    # case when the width or height is defiend in %
-    # the % refers to the size of an including document
-    undef $width if defined $attrs{width} and $attrs{width} =~ /%/ ;
-    undef $height if defined $attrs{height} and $attrs{height}=~ /%/ ;
     
     foreach my $attr (keys %attrs) {
 	if ($attr =~ /^xmlns:(.+)/ ) {
@@ -723,12 +714,7 @@ sub radialGradient_ {
 	    carp ("Bad gradient def: nor stops, neither xlink;href");
 	}
     }
-    my $gradientDef;
-    if ($zinc_version lt "3.2.6i") {
-	$gradientDef = join (" | ", @stops) . "( $center";
-    } else {
-	$gradientDef = "=radial $center | " . join (" | ", @stops);
-    }
+    my $gradientDef = "=radial $center | " . join (" | ", @stops);
     $res .= "\"" . $gradientDef . "\", \"$gname\");";  ### BUG: limits: x y!
     # si il faut appliquer une transparence sur un gradient on est très embêté!
     &defineNamedGradient($gname, $gradientDef) ;
@@ -780,12 +766,7 @@ sub linearGradient_ {
 	    carp ("Bad gradient def: nor stops, neither xlink;href");
 	}
     }
-    my $gradientDef;
-    if ($zinc_version lt "3.2.6i") {
-	$gradientDef = join (" | ", @stops) . " /$angle";
-    } else {
-	$gradientDef = "=axial $angle | " . join (" | ", @stops);
-    }
+    my $gradientDef = "=axial $angle | " . join (" | ", @stops);
     $res .=  "\"" . $gradientDef . "\", \"$gname\");";
     # si il faut appliquer une transparence sur un gradient on est très embêté!
     &defineNamedGradient($gname, $gradientDef) ;
@@ -937,7 +918,7 @@ sub Char {
     my $type = ($expat->context)[-1];
     return if !defined $type;
     chomp $text;
-    return if !$text;  # empty text!
+    return if (!$text && ($text ne "0")); # empty text!
     # $text =~ s/([\x80-\xff])/sprintf "#x%X;", ord $1/eg;
     # $text =~ s/([\t\n])/sprintf "#%d;", ord $1/eg;
 #    print "$type: $text\n";
@@ -1246,7 +1227,7 @@ sub analyze_style_hash {
 	if ($color eq "none") {
 	    $res .= ", -linewidth => 0";
 	    delete $keyvalues{'stroke-width'};
-	} elsif ( $strokeOpacity != 1 ) {
+	} elsif ( $strokeOpacity != 100 ) {
 	    if ( &existsGradient($color) ) {
 		# so, apply a transparency to a Tk::Zinc named gradient
 		my $newColor = &addTransparencyToGradient($color,$strokeOpacity);
@@ -1272,7 +1253,8 @@ sub analyze_style_hash {
 	if ($color eq "none") {
 	    $res .= ", -filled => 0";
 	    delete $keyvalues{'fill-opacity'};
-	} elsif ( $fillOpacity != 1 ) {
+	} elsif ( $fillOpacity != 100 ) {
+	    print "fillOpacity=$fillOpacity\n";
 	    if ( &existsGradient($color) ) {
 		# so, apply a transparency to a Tk::Zinc named gradient
 		my $newColor = &addTransparencyToGradient($color,$fillOpacity);
@@ -1547,6 +1529,18 @@ sub display {
     $backend->treatLines(@res);
 }
 
+sub findINC
+{
+ my $file = join('/',@_);
+ my $dir;
+ $file  =~ s,::,/,g;
+ foreach $dir (@INC)
+  {
+   my $path;
+   return $path if (-e ($path = "$dir/$file"));
+  }
+ return undef;
+}
 
 
 ###################################################################
@@ -1626,37 +1620,38 @@ SVG::SVG2zinc - a module to display or convert svg files in perl modules or scri
 
 =head1 SYNOPSIS
 
-use SVG::SVG2zinc;
+ use SVG::SVG2zinc;
 
-#To generate a script.pl file:
- &SVG::SVG2zinc::parse('file.svg',
-                       -result_type => 'script.pl',
-                       -verbose => $verbose,
-                       -zinc_version => $zinc_version);
+ &SVG::SVG2zinc::parsefile('file.svg', 'Backend','file.svg',
+			   -out => 'outfile',
+			   -verbose => $verbose,
+			   -namespace => 0|1,
+			   );
 
-#To generate a script.pm file:
- &SVG::SVG2zinc::parse('file.svg',
-                       -result_type => 'script.pm',
-                       -verbose => $verbose,
-                       -zinc_version => $zinc_version,
-                       -group => "\$top_group");
+ # to generate a perl script: 
+ &SVG::SVG2zinc::parsefile('file.svg','PerlScript', 
+			   -out => 'file.pl');
 
-#To display a svgfile:
- $zinc = $mw->Zinc();
- $top_group = $zinc->add('group', 1);
- &SVG::SVG2zinc::parse('file.svg',
-                       -result_type => "\$SVG2zinc::zinc",
-                       -group => $top_group,
-                       -verbose => $verbose,
-                       -namespace => $namespace,
-       	               );
+ # to generate a perl Class:
+ &SVG::SVG2zinc::parsefile('file.svg','PerlClass', 
+			   -out => 'Class.pm');
+
+ # to display a svgfile:
+ &SVG::SVG2zinc::parse('file.svg', 'Display'); 
+
+ #To convert a svgfile in png/jpeg file:
+ &SVG::SVG2zinc::parse('file.svg', 'Image', 
+		       -out => 'file.jpg');
+
+ # to generate a tcl script: 
+ &SVG::SVG2zinc::parsefile('file.svg','TclScript', 
+			   -out => 'file.tcl');
 
 
 =head1 DESCRIPTION
 
-Depending on the -result_type argument, &SVG::SVG2zinc::parse either displays
-SVG files inside a Tk::Zinc widget, or generates a perl module which could
-be used by a script or generates a perl script which displays the SVG file.
+Depending on the used Backend, &SVG::SVG2zinc::parse either generates a perl class,
+perl script or bitmap images or displays SVG files inside a Tk::Zinc widget.
 
 SVG::SVG2zinc should be extended to generate tcl or python scripts and/or
 modules.
@@ -1669,19 +1664,19 @@ Some limitations are due to differences between Tk::Zinc and SVG graphic models 
 
 =item B<Drawing width>
 
-Drawing width are zoomed in SVG but are not with Tk::Zinc. Their width is defined whatever the zoom factor is.
+Drawing width are zoomed in SVG but are not in Tk::Zinc where it is constant whatever the zoom factor is.
 
 =item B<Gradient Transformation>
 
-Gradient Transformation is not possible in Tk::Zinc. May be it could be implemented by the converted?
+Gradient Transformation is not possible in Tk::Zinc. May be it could be implemented by the converter?
 
 =item B<Rounded Rectangles>
 
-Rectangles cannot have rounded corners in Tk::Zinc. Could be implemented, by producing curve item rather than rectabgles in Tk::zinc. Sould be implemented in a future release of Tk::Zinc  
+Rectangles cannot have rounded corners in Tk::Zinc. Could be implemented, by producing curve item rather than rectangles in Tk::zinc. Should be implemented in a future release of Tk::Zinc  
 
 =item B<Skew and Matrix transforms>
 
-Skew and Matrix transforms are not yet available in Tk::Zinc 3.2.94 or 3.294. Hopefully they should be available in the next release. 
+Skew and Matrix transforms are not yet available in Tk::Zinc 3.295. Hopefully they should be available in a future release. 
 
 =item B<Text and tspan tags>
 
@@ -1703,7 +1698,6 @@ The SVG ClipPath tag is a bit more powerfull than Tk::Zinc clipping (clipper is 
 =back
 
 
-
 There are also some limitations due to the early stage of the converter:
 
 =over 2
@@ -1714,7 +1708,7 @@ CSS in external url is not yet implemented
 
 =item B<SVG animation and scripting>
 
-No animation is currently available, neither scripting in the SVG file. But Perl is a scripting language, isn'it? 
+No animation is currently available, neither scripting in the SVG file. But Perl or Tcl are scripting languages, 
 
 =item B<switch tag>
 
@@ -1722,11 +1716,13 @@ The SVG switch tag is only partly implemented, but should work in most situation
 
 =item href for images
 
-href for images can only reference a file in the same directory than the SVG source file
+href for images can only reference a file in the same directory than the SVG source file.
 
 =back
 
-It was said there is still one hidden bug... but please patch and/or report it to the author!
+It was said there is still one hidden bug... but please patch and/or report it to the author! Any (simple ?)
+
+SVG file not correctly rendered by this module (except for limitations listed previously) could be send to the author with a little comment about the expected rendering.
 
 =head1 SEE ALSO
 

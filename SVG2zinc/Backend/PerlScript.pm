@@ -9,23 +9,24 @@ package SVG::SVG2zinc::Backend::PerlScript;
 #
 #       A concrete class for code generation for Perl Scripts
 #
-# $Id: PerlScript.pm,v 1.8 2003/09/18 08:54:04 mertz Exp $
+# $Id: PerlScript.pm,v 1.11 2003/10/17 08:46:38 mertz Exp $
 #############################################################################
-
-use SVG::SVG2zinc::Backend;
-
-@ISA = qw( SVG::SVG2zinc::Backend );
-
-use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
+
+use SVG::SVG2zinc::Backend;
+use File::Basename;
+
+use vars qw( $VERSION @ISA  );
+@ISA = qw( SVG::SVG2zinc::Backend );
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
 
 sub new {
     my ($class, %passed_options) = @_;
     my $self = {};
     bless $self, $class;
+    $self->{-render} = defined $passed_options{-render} ? delete $passed_options{-render} : 1;
     $self->_initialize(%passed_options);
     return $self;
 }
@@ -41,17 +42,18 @@ sub treatLines {
 
 sub fileHeader {
     my ($self) = @_;
-    my $file = $self->{-svgfile}; # print "file=$file\n";
-    my $VERSION = $self->{-svg2zincversion} || "unknown";
+    my $svgfile = $self->{-in}; # print "file=$svgile\n";
+    my ($svg2zincPackage) = caller;
+    my $VERSION = eval ( "\$".$svg2zincPackage."::VERSION" );
     $self->printLines("#!/usr/bin/perl -w
 
-####### This file has been generated from $file by SVG::SVG2zinc.pm Version: $VERSION
+####### This file has been generated from $svgfile by SVG::SVG2zinc.pm Version: $VERSION
 ");
 
 
     $self->printLines(
 <<'HEADER'
-use Tk::Zinc;
+use Tk::Zinc 3.295;
 use Tk::Zinc::Debug;
 use Tk::PNG;  # only usefull if loading png file
 use Tk::JPEG; # only usefull if loading png file
@@ -59,14 +61,24 @@ use Tk::JPEG; # only usefull if loading png file
 use Tk::Zinc::SVGExtension;
 
 my $mw = MainWindow->new();
-$mw->title('$file');
-
-my ($WIDTH,$HEIGHT) = (800,600);
-my $zinc = $mw->Zinc(-width => $WIDTH, -height => $HEIGHT,
+HEADER
+		      );
+    my $svgfilename = basename($svgfile);
+    $self->printLines("
+\$mw->title('$svgfile');
+my (\$WIDTH, \$HEIGHT) = (800, 600);
+" );
+    my $render = $self->{-render}; print "render=$render\n";
+    $self->printLines("
+my \$zinc = \$mw->Zinc(-width => \$WIDTH, -height => \$HEIGHT,
 		     -borderwidth => 0,
-                     -backcolor => "white", # pourquoi blanc?
-		     -render => 1,
+                     -backcolor => 'white', # why white?
+		     -render => $render,
 		      )->pack;
+");
+
+    $self->printLines(
+<<'HEADER'
 &Tk::Zinc::Debug::finditems($zinc);
 &Tk::Zinc::Debug::tree($zinc, -optionsToDisplay => '-tags', -optionsFormat => 'row');
 my $top_group = 1; ###$zinc->add('group', 1);
@@ -185,4 +197,65 @@ TAIL
 
 
 1;
+
+__END__
+
+=head1 NAME
+
+SVG:SVG2zinc::Backend::PerlScript - a backend class generating Perl script displaying the content of a SVG file
+
+=head1 SYNOPSIS
+
+ use SVG:SVG2zinc::Backend::PerlScript;
+
+ $backend = SVG:SVG2zinc::Backend::PerlScript->new(
+	       -out => filename_or_handle,
+               -in => svgfilename,
+	       -verbose => 0|1,
+	       -render => 0|1|2,
+	       );
+
+ $backend->fileHeader();
+
+ $backend->treatLines("lineOfCode1", "lineOfCode2",...);
+
+ $backend->comment("comment1", "comment2", ...);
+
+ $backend->printLines("comment1", "comment2", ...);
+
+ $backend->fileTail();
+
+=head1 DESCRIPTION
+
+SVG:SVG2zinc::Backend::PerlScript is a class for generating perl script which displays the content of a SVG file. The generated script requires Tk::Zinc.
+
+For more information, you should look at SVG::SVG2zinc::Backend(3pm).
+
+The generated perl script uses the Tk::Zinc::Debug tool, so it is easy to inspect items created in Tk::Zinc. Use the <ESC> key to get some help when the cursor is in the Tk::Zinc window. 
+
+The B<new> method accepts parameters described in the SVG:SVG2zinc::Backend class and the following additionnal parameter:
+
+=over
+
+=item B<-render>
+
+The render option of the Tk::Zinc widget. A value of 0 means no openGL, 1 or 2 for openGL. Defaults to 1.
+
+=back
+
+=head1 SEE ALSO
+
+SVG::SVG2zinc::Backend(3pm) and SVG::SVG2zinc(3pm)
+
+=head1 AUTHORS
+
+Christophe Mertz <mertz@cena.fr>
+
+=head1 COPYRIGHT
+    
+CENA (C) 2003
+
+This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
+
+=cut
 

@@ -1,4 +1,4 @@
-package SVG::SVG2zinc::Backend::PerlModule;
+package SVG::SVG2zinc::Backend::PerlClass;
 
 #	Backend Class for SVG2zinc
 # 
@@ -7,17 +7,18 @@ package SVG::SVG2zinc::Backend::PerlModule;
 #
 #	Author: Christophe Mertz <mertz@cena.fr>
 #
-#       An concrete class for code generation for Perl Modules
+#       An concrete class for code generation for Perl Class
 #
-# $Id: PerlModule.pm,v 1.6 2003/09/17 14:22:31 mertz Exp $
+# $Id: PerlClass.pm,v 1.2 2003/10/10 14:30:57 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
+use File::Basename;
 
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -31,11 +32,6 @@ sub new {
     return $self;
 }
 
-#sub _initialize {
-#    my ($self, %passed_options) = @_;
-#    $self->SUPER::_initialize(%passed_options);
-#    return $self;
-#}
 
 sub treatLines {
     my ($self,@lines) = @_;
@@ -47,9 +43,10 @@ sub treatLines {
 
 sub fileHeader {
     my ($self) = @_;
-    my $file = $self->{-svgfile}; # print "file=$file\n";
-    my $VERSION = $self->{-svg2zincversion} || "unknown";
-    my ($package_name) = $self->{-outfile} =~ /([^\/]*)\.pm$/ ;
+    my $file = $self->{-in}; # print "file=$file\n";
+    my ($svg2zincPackage) = caller;
+    my $VERSION = eval ( "\$".$svg2zincPackage."::VERSION" );
+    my ($package_name) = basename ($self->{-out}) =~ /(.*)\.pm$/ ;
     
     $self->printLines("package $package_name;
 
@@ -59,35 +56,31 @@ sub fileHeader {
     $self->printLines(
 <<'HEADER'
 use Tk;
-use Tk::Zinc;
+use Tk::Zinc 3.295;
 use Tk::PNG;  # only usefull if loading png file
 use Tk::JPEG; # only usefull if loading png file
-use Tk::Zinc::ZincExtension;
+use Tk::Zinc::SVGExtension;
 use strict;
-require Toccata::Subject;
-use vars '@ISA';
-@ISA = 'Toccata::Subject';
 
+use Carp;
+		      
 
-sub populate {
-  my ($self, $args) = @_;
-  $self->SUPER::populate ($args);
-  $self->configspec (-zinc =>	['PASSIVE'],
-		     -top_group => ['PASSIVE'],
-		    );
-}
+sub new {
+    my ($class, %passed_options) = @_;
+    my $self = {};
+    bless $self, $class;
 
-sub new{
-  
-  my $proto = shift;
-  my $type = ref ($proto) || $proto;
-  my $self = $type->SUPER::new (@_);
-  bless $self;
-  
-  my $_zinc = $self -> {-zinc};
-  my $top_group = $self -> {-top_group};
+    my $_zinc = $passed_options{-zinc};
+    croak ("-zinc option is mandatory at instanciation") unless defined $_zinc;
 
-{ ###
+    if (defined $passed_options{-topGroup}) {
+	$self->{-topGroup} = $passed_options{-topGroup}; ## CM10
+    } else {
+	$self->{-topGroup} = 1;
+    }
+    
+
+# on now items creation!
 HEADER
 );
 }
@@ -98,7 +91,7 @@ sub fileTail {
     $self->comment ("", "Tail of SVG2zinc::Backend::PerlScript", "");
     $self->printLines(
 <<'TAIL'
-		      }
+return $self;
 }
 
 1;

@@ -5,10 +5,13 @@ Makefile.PL
 README
 SVG2zinc.pm
 SVG2zinc/Backend.pm
-SVG2zinc/Backend/Exec.pm
-SVG2zinc/Backend/PerlModule.pm
+SVG2zinc/Backend/Display.pm
+SVG2zinc/Backend/Image.pm
+SVG2zinc/Backend/PerlClass.pm
 SVG2zinc/Backend/PerlScript.pm
 SVG2zinc/Backend/Print.pm
+SVG2zinc/Backend/Tcl.pm
+SVG2zinc/Backend/TclScript.pm
 SVG2zinc/Conversions.pm
 doc/doc.txt
 doc/samples/dia/dia-network-parts.svg
@@ -58,10 +61,10 @@ lib/Tk/Zinc/SVGExtension.pm
 svg2zinc.pl
 t/Conversions.t
 t/Import.t
+t/Tcl.t
 t/Test/Builder.pm
 t/Test/Harness.pm
 t/Test/Harness/Assert.pm
 t/Test/Harness/Iterator.pm
 t/Test/Harness/Straps.pm
 t/Test/More.pm
-t/testbackends.pl

@@ -1,7 +1,18 @@
+svg2zinc-perl (0.7) unstable; urgency=low
+
+  * BEWARE: Tk::Zinc must be 3.295 or higher. but no dependancies
+    because this module can be used without Tk::Zinc installed
+  * Backend can now be easily extended, without modifying SVG::SVG2zinc or
+    even svg2zinc.pl
+  * Provided with two new backends: Image and TclScript (highly experimental) 
+  * enhanced manpages for svg2zinc.pl, SVG::SVG2zinc and SVG::SVG2zinc::Backend
+
+ -- Christophe Mertz <mertz@tls.cena.fr>  Mon,  6 Oct 2003 16:29:43 +0200
+
 svg2zinc-perl (0.6) unstable; urgency=low
 
   * adding README, cpaniser script, MANIFEST (generated),
-  * update Tk::Zinc dependency
+  * update Tk::Zinc dependancy
   * renaming the ZincExtension sub-module as Tk::Zinc::SVGExtension
 
  -- Christophe Mertz <mertz@tls.cena.fr>  Wed, 17 Sep 2003 18:27:08 +0200
