@@ -9,7 +9,7 @@ package SVG::SVG2zinc::Backend::PerlModule;
 #
 #       An concrete class for code generation for Perl Modules
 #
-# $Id: PerlModule.pm,v 1.5 2003/09/10 13:30:59 mertz Exp $
+# $Id: PerlModule.pm,v 1.6 2003/09/17 14:22:31 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -17,7 +17,7 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -53,7 +53,7 @@ sub fileHeader {
     
     $self->printLines("package $package_name;
 
-####### This file has been generated from $file by SVG2zinc.pm Version: $VERSION
+####### This file has been generated from $file by SVG::SVG2zinc.pm Version: $VERSION
 
 ");
     $self->printLines(
@@ -62,7 +62,7 @@ use Tk;
 use Tk::Zinc;
 use Tk::PNG;  # only usefull if loading png file
 use Tk::JPEG; # only usefull if loading png file
-use ZincExtension;
+use Tk::Zinc::ZincExtension;
 use strict;
 require Toccata::Subject;
 use vars '@ISA';

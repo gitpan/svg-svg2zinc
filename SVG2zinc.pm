@@ -12,7 +12,7 @@ package SVG::SVG2zinc;
 #          Celine Schlienger <celine@intuilab.com>
 #          Stéphane Chatty <chatty@intuilab.com>
 #
-# $Id: SVG2zinc.pm,v 1.30 2003/09/10 14:20:39 mertz Exp $
+# $Id: SVG2zinc.pm,v 1.31 2003/09/18 08:36:37 mertz Exp $
 #############################################################################
 #
 # this is the main module of the a converter from SVG file
@@ -31,14 +31,12 @@ use Tk::PNG;
 use Tk::JPEG;
 use English;
 
-use ZincExtension;
-
 use SVG::SVG2zinc::Conversions;
 
 use vars qw($VERSION $REVISION);
 
-$REVISION = q$Revision: 1.30 $ ;
-$VERSION = "0.05";
+$REVISION = q$Revision: 1.31 $ ;
+$VERSION = "0.06";
 
 # to suppress some stupid warning usefull for debugging only
 my $warn=0;
@@ -1624,8 +1622,7 @@ __END__
 
 =head1 NAME
 
-SVG::SVG2zinc.pm - a module to convert svg files in perl (and future other scripting language)
-modules or script, assuming you have Tk::Zinc.
+SVG::SVG2zinc - a module to display or convert svg files in perl modules or script, assuming you have Tk::Zinc.
 
 =head1 SYNOPSIS
 

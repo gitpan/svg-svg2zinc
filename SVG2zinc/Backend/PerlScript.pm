@@ -9,7 +9,7 @@ package SVG::SVG2zinc::Backend::PerlScript;
 #
 #       A concrete class for code generation for Perl Scripts
 #
-# $Id: PerlScript.pm,v 1.6 2003/09/10 13:30:59 mertz Exp $
+# $Id: PerlScript.pm,v 1.8 2003/09/18 08:54:04 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -17,7 +17,7 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -45,18 +45,18 @@ sub fileHeader {
     my $VERSION = $self->{-svg2zincversion} || "unknown";
     $self->printLines("#!/usr/bin/perl -w
 
-####### This file has been generated from $file by SVG2zinc.pm Version: $VERSION
+####### This file has been generated from $file by SVG::SVG2zinc.pm Version: $VERSION
 ");
 
 
     $self->printLines(
 <<'HEADER'
 use Tk::Zinc;
-use ZincDebug;
+use Tk::Zinc::Debug;
 use Tk::PNG;  # only usefull if loading png file
 use Tk::JPEG; # only usefull if loading png file
 
-use ZincExtension;
+use Tk::Zinc::SVGExtension;
 
 my $mw = MainWindow->new();
 $mw->title('$file');
@@ -67,8 +67,8 @@ my $zinc = $mw->Zinc(-width => $WIDTH, -height => $HEIGHT,
                      -backcolor => "white", # pourquoi blanc?
 		     -render => 1,
 		      )->pack;
-&ZincDebug::finditems($zinc);
-&ZincDebug::tree($zinc, -optionsToDisplay => '-tags', -optionsFormat => 'row');
+&Tk::Zinc::Debug::finditems($zinc);
+&Tk::Zinc::Debug::tree($zinc, -optionsToDisplay => '-tags', -optionsFormat => 'row');
 my $top_group = 1; ###$zinc->add('group', 1);
 
 my $_zinc=$zinc;
@@ -109,7 +109,7 @@ $_zinc->bind('all', '<Enter>',
 	[ sub { my ($z)=@_; my $i=$z->find('withtag', 'current');
 			my @tags = $z->gettags($i);
 			pop @tags; # pour enlever 'current'
-			print "$i (", $z->type($i), ") [@tags]\\n";}] );
+			print "$i (", $z->type($i), ") [@tags]\n";}] );
 
 &Tk::MainLoop;
 

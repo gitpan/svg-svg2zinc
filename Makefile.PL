@@ -8,7 +8,7 @@ WriteMakefile
 	 'XML::Parser' => 2.30,
 	 'Tk::PNG' => 2.005,
 	 'Tk::JPEG' => 2.014,
-	 'Tk::Zinc' => 3.2.94,
+	 'Tk::Zinc' => 3.294,
      },
 
     'EXE_FILES' => [ 'svg2zinc.pl' ],

@@ -7,11 +7,11 @@
 #
 #      Authors: Christophe Mertz <mertz@cena.fr>
 #
-# $Id: svg2zinc.pl,v 1.14 2003/09/08 15:06:00 mertz Exp $
+# $Id: svg2zinc.pl,v 1.15 2003/09/18 08:36:37 mertz Exp $
 #-----------------------------------------------------------------------------------
 
-my $TAG= q$Name: cpan_0_05 $;
-my $REVISION = q$Revision: 1.14 $ ;
+my $TAG= q$Name: cpan_0_06 $;
+my $REVISION = q$Revision: 1.15 $ ;
 my ($VERSION) = $TAG =~ /^\D*([\d_]+)/ ;
 if (defined $VERSION and $VERSION ne "_") {
     $VERSION =~ s/_/\./g;
@@ -75,7 +75,7 @@ my $top_group;
 if ($displayResult) {
     ### the SVG file is parsed and the result displayed in a TkZinc widget
     require Tk::Zinc;
-    require ZincDebug;
+    require Tk::Zinc::Debug;
 
     $mw = MainWindow->new();
     $mw->title($file);
@@ -84,8 +84,8 @@ if ($displayResult) {
 		      -render => $render,
 		      -backcolor => "white", ## Pourquoi blanc?
 		      )->pack(qw/-expand yes -fill both/);
-    &ZincDebug::finditems($zinc);
-    &ZincDebug::tree($zinc, -optionsToDisplay => "-tags", -optionsFormat => "row");
+    &Tk::Zinc::Debug::finditems($zinc);
+    &Tk::Zinc::Debug::tree($zinc, -optionsToDisplay => "-tags", -optionsFormat => "row");
     $top_group = $zinc->add('group', 1, -tags => ['topsvggroup']);
     $SVG::SVG2zinc::zinc = $zinc;
     $SVG::SVG2zinc::zinc = $zinc; # repetition avoids annoying error message "SVG2zinc::zinc used only once"

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 #
-# $Id: Conversions.t,v 1.3 2003/09/10 14:43:41 mertz Exp $
+# $Id: Conversions.t,v 1.4 2003/09/17 14:32:04 mertz Exp $
 # Author: Christophe Mertz
 #
 
@@ -26,7 +26,9 @@ BEGIN {
     use_ok( 'SVG::SVG2zinc::Conversions;' );
 }
 
-require_ok( 'SVG::SVG2zinc::Conversions;' );
+require_ok( 'SVG::SVG2zinc::Conversions' );
+require_ok( 'Tk::Zinc::SVGExtension' );
+require_ok( 'Math::Bezier::Convert' );
 ok (&InitConv (sub { &diag("svg2zincWarning: ".$_[0])},
 	       sub {return ""}), 'init' );
 
@@ -78,9 +80,8 @@ is (&namedGradient ("foo"), "foo", "foo gradient is foo gradient");
 is (&namedGradient ("bar"), "foo", "bar gradient is foo gradient");
     is (&namedGradient ("refoo"), "foo", "refoo gradient is foo gradient");
 
-diag("##############ici");
-is (&namedGradientDef ("foo"), "=axial 0 | black;50 60 | white;50");
-is (&namedGradientDef ("bar"), "=axial 0 | black;50 60 | white;50");
+is (&namedGradientDef ("foo"), "=axial 0 | black;50 60 | white;50", "comparing foo gradient with its definition");
+is (&namedGradientDef ("bar"), "=axial 0 | black;50 60 | white;50", "comparing bar gradient, an alias of foo with the same definition");
 
 
 is_deeply ( [&extractGradientTypeAndStops("foo")],

@@ -7,7 +7,7 @@ package ZincExtension;
 #
 #	Author: Christophe Mertz <mertz@cena.fr>
 #
-# $Id: ZincExtension.pm,v 1.5 2003/09/10 09:56:44 mertz Exp $
+# $Id: SVGExtension.pm,v 1.5 2003/09/10 09:56:44 mertz Exp $
 #############################################################################
 
 use strict;

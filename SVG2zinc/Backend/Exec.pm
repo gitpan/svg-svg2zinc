@@ -9,7 +9,7 @@ package SVG::SVG2zinc::Backend::Exec;
 #
 #       An concrete class for code generation and execution
 #
-# $Id: Exec.pm,v 1.3 2003/09/09 14:35:59 mertz Exp $
+# $Id: Exec.pm,v 1.4 2003/09/17 14:22:31 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -17,10 +17,11 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
+use Tk::Zinc::SVGExtension;
 
 sub new {
     my ($class, %passed_options) = @_;
