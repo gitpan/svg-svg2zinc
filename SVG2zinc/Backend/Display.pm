@@ -5,9 +5,9 @@ package SVG::SVG2zinc::Backend::Display;
 #	Copyright 2003
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com>
 #
-# $Id: Display.pm,v 1.6 2003/10/17 16:25:47 mertz Exp $
+# $Id: Display.pm,v 1.10 2004/05/01 09:19:33 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -15,7 +15,7 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -50,7 +50,6 @@ sub _initialize {
     $self->SUPER::_initialize(%passed_options);
 
     require Tk::Zinc::Debug; # usefull for browsing items herarchy
-
     my $mw = MainWindow->new();
     my $svgfile = $self->{-in};
     $mw->title($svgfile);
@@ -59,8 +58,15 @@ sub _initialize {
 		      -render => $self->{-render},
 		      -backcolor => "white", ## why white?
 		      )->pack(qw/-expand yes -fill both/);
-    &Tk::Zinc::Debug::finditems($zinc);
-    &Tk::Zinc::Debug::tree($zinc, -optionsToDisplay => "-tags", -optionsFormat => "row");
+
+    if (Tk::Zinc::Debug->can('init')) {
+	# for TkZinc >= 3.2.96
+	&Tk::Zinc::Debug::init($zinc, -optionsToDisplay => "-tags", -optionsFormat => "row");
+    } else {
+	# for TkZinc <= 3.2.95
+	&Tk::Zinc::Debug::finditems($zinc);
+	&Tk::Zinc::Debug::tree($zinc, -optionsToDisplay => "-tags", -optionsFormat => "row");
+    }
 }
 
 
@@ -223,11 +229,11 @@ SVG::SVG2zinc::Backend(3pm) and SVG::SVG2zinc(3pm)
 
 =head1 AUTHORS
 
-Christophe Mertz <mertz@cena.fr>
+Christophe Mertz <mertz at intuilab dot com>
 
 =head1 COPYRIGHT
     
-CENA (C) 2003
+CENA (C) 2003-2004 IntuiLab 2004
 
 This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
 

@@ -5,11 +5,11 @@ package SVG::SVG2zinc::Backend::TclScript;
 #	Copyright 2003
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com>
 #
 #       A concrete class for code generation for Tcl Scripts
 #
-# $Id: TclScript.pm,v 1.2 2003/10/17 08:46:38 mertz Exp $
+# $Id: TclScript.pm,v 1.3 2004/05/01 09:19:34 mertz Exp $
 #############################################################################
 
 use strict;
@@ -21,7 +21,7 @@ use File::Basename;
 
 use vars qw( $VERSION @ISA  );
 @ISA = qw( SVG::SVG2zinc::Backend );
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
 
 sub new {
     my ($class, %passed_options) = @_;
@@ -247,11 +247,11 @@ The Tk::Zinc::SVGExtension perl module provided with SVG::SVG2zinc should be con
 
 =head1 AUTHORS
 
-Christophe Mertz <mertz@cena.fr>
+Christophe Mertz <mertz at intuilab dot com>
 
 =head1 COPYRIGHT
     
-CENA (C) 2003
+CENA (C) 2003-2004
 
 This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
 

@@ -1,17 +1,17 @@
 #############################################################################
-# $Id: copyright,v 1.3 2003/09/17 14:25:40 mertz Exp $
+# $Id: copyright,v 1.4 2004/05/01 09:19:34 mertz Exp $
 #############################################################################
 
-Copyright (C) 2002-2003
+Copyright (C) 2002-2004
 Centre d'Études de la Navigation Aérienne
 
-Authors: Christophe Mertz <mertz@cena.fr>
+Authors: Christophe Mertz <mertz at intuilab dot com>
 
 with the help or support from
-  S. Chatty <chatty@intuilab.com>,
-  C. Schlienger <celine@intuilab.com>
-  A. Lemort <lemort@intuilab.com>
-  and of course, P. Lecoanet (the author of TkZinc) <lecoanet@cena.fr>
+  S. Chatty <chatty at intuilab dot com>,
+  C. Schlienger <celine at intuilab dot com>
+  A. Lemort <lemort at intuilab dot com>
+  and of course, P. Lecoanet (the author of TkZinc) <lecoanet at cena dot fr>
 
  This code is free software; you can redistribute it and/or
  modify it under the terms of the GNU Library General Public

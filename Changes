@@ -1,11 +1,29 @@
+svg2zinc-perl (0.10) unstable; urgency=low
+
+  * thx to tkzinc 3.2.96, SVG skew and matrix properties are now well interpreted 
+
+ --
+
+svg2zinc-perl (0.9) unstable; urgency=low
+
+  * a better loading of Backend (specially if the backend has some errors
+    they are now correctly printed)
+  * compatible with the future Tk::Zinc::Debug new api (to come with TkZinc 3.2.96)
+  * perl classes generated can now define in which group items will be added
+  * a sample script to test generated perl classes (with PerlClass backend): 
+  * make test should test that backend works correctly (after some bug report 
+    from R. Oger) 
+
+ -- Christophe Mertz <mertz@tls.cena.fr>  Wed, 29 Oct 2003 11:06:56 +0100
+
 svg2zinc-perl (0.8) unstable; urgency=low
 
   * unknown -render options appeared for some backend
   * -out options was falsely required by Display and Print backend
   * suppression of some unusefull prints
   * better testing of the existence of userdefined Backend
-  * svg2zinc.pl now test if here is an outfile required by some Backend,
-    and warn in the case of user defined Backend
+  * svg2zinc.pl now tests if there is an outfile required by some Backend,
+    and warns in the case of user defined Backend
   * slight doc enhancements
 
  -- Christophe Mertz <mertz@tls.cena.fr>  Fri, 17 Oct 2003 15:56:48 +0200

@@ -2,14 +2,14 @@ package SVG::SVG2zinc::Backend::PerlClass;
 
 #	Backend Class for SVG2zinc
 # 
-#	Copyright 2003
+#	Copyright 2003-2004
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com>
 #
 #       An concrete class for code generation for Perl Class
 #
-# $Id: PerlClass.pm,v 1.3 2003/10/17 16:25:47 mertz Exp $
+# $Id: PerlClass.pm,v 1.5 2004/05/01 09:19:33 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -18,16 +18,23 @@ use File::Basename;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
 
+sub _initialize {
+    my ($self, %passed_options) = @_;
+    $self->{-topgroup} = '$self->{-topgroup}'; # this code is used by SVG2zinc
+    $self->SUPER::_initialize(%passed_options);
+    return $self;
+}
 
 sub treatLines {
     my ($self,@lines) = @_;
     foreach my $l (@lines) {
-	$l =~ s/->/\$_zinc->/g;
+	$l =~ s/^(\s*)->/$1\$_zinc->/g;
+	$l =~ s/(\W)->/$1\$_zinc->/g;
 	$self->printLines($l);
     }
 }
@@ -64,10 +71,10 @@ sub new {
     my $_zinc = $passed_options{-zinc};
     croak ("-zinc option is mandatory at instanciation") unless defined $_zinc;
 
-    if (defined $passed_options{-topGroup}) {
-	$self->{-topGroup} = $passed_options{-topGroup}; ## CM10
+    if (defined $passed_options{-topgroup}) {
+	$self->{-topgroup} = $passed_options{-topgroup};
     } else {
-	$self->{-topGroup} = 1;
+	$self->{-topgroup} = 1;
     }
     
 

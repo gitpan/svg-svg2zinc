@@ -68,3 +68,6 @@ t/Test/Harness/Assert.pm
 t/Test/Harness/Iterator.pm
 t/Test/Harness/Straps.pm
 t/Test/More.pm
+t/UsingBackend.t
+t/tux.svg
+testGeneratedPerlClasses.pl

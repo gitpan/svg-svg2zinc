@@ -1,17 +1,17 @@
 package SVG::SVG2zinc::Backend;
 
 #	Backend for SVG2zinc
-# 
-#	Copyright 2003
+#
+#	Copyright 2003-2004
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com>
 #
 #       An abstract class for code generation
 #       Concrete sub-classes can generate code for perl (script / module), tcl,
 #       printing, or direct execution
 #
-# $Id: Backend.pm,v 1.9 2003/10/17 16:20:20 mertz Exp $
+# $Id: Backend.pm,v 1.12 2004/05/01 09:19:33 mertz Exp $
 #############################################################################
 
 use strict;
@@ -19,7 +19,7 @@ use Carp;
 use FileHandle;
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
 
 sub new {
     my ($class, %passed_options) = @_;
@@ -31,9 +31,9 @@ sub new {
 
 my %new_options = (
 		   -render => 1,
-		   -out => "",
-		   -in => "",
-		   -verbose => "",
+		   -out => 1,
+		   -in => 1,
+		   -verbose => 1,
 );
 
 sub _initialize {
@@ -45,6 +45,7 @@ sub _initialize {
 	    carp ("Warning: option $opt unknown for a ".ref($self)."\n");
 	}
     }
+    $self->{-render} = 1 unless defined $self->{-render};
     croak("undefined mandatory -in options") unless defined $self->{-in};
     if (defined $self->{-out} and $self->{-out}) {
 	my $out = $self->{-out};
@@ -60,6 +61,18 @@ sub _initialize {
 	}
     }
     return $self;
+}
+
+# used by SVG2zinc to know the zinc group in which the svg topgroup  
+# by default: 1
+# currently default need be overriden by PerlClass only, as far as I now!?
+sub _topgroup {
+    my ($self) = @_;
+    if ($self->{-topgroup}) {
+	return $self->{-topgroup};
+    } else {
+	return 1;
+    }
 }
 
 # returns true if code is put in a file
@@ -173,7 +186,7 @@ A backend should provide the following methods:
 
 =item B<new>
 
-This creation class method should accept pairs of (-option => value) as well as the following arguments :
+This creation class method should accept pairs of (-option => value) as well as the following arguments:
 
 =over
 
@@ -219,18 +232,19 @@ A backend can use the printLines method to print lines in the generated file.
 
 =head1 SEE ALSO
 
-SVG::SVG2zinc::Backend::Display, SVG::SVG2zinc::Backend::PerlScript, SVG::SVG2zinc::Backend::TclScript, SVG::SVG2zinc::Backend::PerlClass  code
+SVG::SVG2zinc::Backend::Display(3pm), SVG::SVG2zinc::Backend::PerlScript(3pm),
+SVG::SVG2zinc::Backend::TclScript(3pm), SVG::SVG2zinc::Backend::PerlClass(3pm) code
 as examples of SVG::SVG2zinc::Backend subclasses.
 
 SVG::SVG2zinc(3pm)
 
 =head1 AUTHORS
 
-Christophe Mertz <mertz@cena.fr> with some help from Daniel Etienne <etienne@cena.fr>
+Christophe Mertz <mertz at intuilab dot com> with some help from Daniel Etienne <etienne at cena dot fr>
 
 =head1 COPYRIGHT
     
-CENA (C) 2003
+CENA (C) 2003-2004
 
 This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
 

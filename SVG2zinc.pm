@@ -6,13 +6,14 @@ package SVG::SVG2zinc;
 #	Copyright 2002-2003
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com> 
+#                                previously <mertz at cena dot fr>
 #          with many helps from
-#          Alexandre Lemort <lemort@intuilab.com>
-#          Celine Schlienger <celine@intuilab.com>
-#          Stéphane Chatty <chatty@intuilab.com>
+#          Alexandre Lemort <lemort at intuilab dot com>
+#          Celine Schlienger <celine at intuilab dot com>
+#          Stéphane Chatty <chatty at intuilab dot com>
 #
-# $Id: SVG2zinc.pm,v 1.37 2003/10/17 16:30:29 mertz Exp $
+# $Id: SVG2zinc.pm,v 1.42 2004/05/01 09:19:32 mertz Exp $
 #############################################################################
 #
 # this is the main module of the a converter from SVG file
@@ -37,8 +38,8 @@ use SVG::SVG2zinc::Conversions;
 use vars qw($VERSION $REVISION @ISA @EXPORT);
 @EXPORT = qw( parsefile findINC );
 
-$REVISION = q$Revision: 1.37 $ ;
-$VERSION = "0.08";
+$REVISION = q$Revision: 1.42 $ ;
+$VERSION = "0.10";
 
 # to suppress some stupid warning usefull for debugging only
 my $warn=0;
@@ -134,6 +135,7 @@ sub parsefile {
     $prefix =  defined $args{-prefix} ? $args{-prefix} : "";
     delete $args{-prefix}; # this option is not propagated to Backend
 
+#    print "The prefix is '$prefix'\n";
     # should we treat XML namespace?
     my $namespace = defined $args{-namespace} ? $args{-namespace} : 0;
     delete $args{-namespace}; # this option is not propagated to Backend
@@ -141,35 +143,25 @@ sub parsefile {
     ## init of some global variables used by Conversions.pm
     &SVG::SVG2zinc::Conversions::InitConv(\&myWarn, \&current_line);
 
-    my $module = $backendName;
-    $module =~ s!::!\/!g ;
-    if (!&findINC($backendName.".pm") and !&findINC( "SVG/SVG2zinc/Backend/".$module.".pm")) {
-	die "$backendName not found as a module or as SVG::SVG2zinc::Backend::$backendName";
-    }
-    eval {require "SVG/SVG2zinc/Backend/$module.pm"};
-    if ($@) {
-	# SVG/SVG2zinc/Backend/$module.pm not found (or may be error?!)
-	# print "$@\n";
-	if ($@ =~ /^syntax/) {
-	    print "$@\n";
-	    exit;
-	}
-	eval {require "$module.pm"};
-	if ($@) {
-	    print "$@\n";
-	    croak ("$backendName not found as a module or as SVG::SVG2zinc::Backend::$backendName");
-	}
+    
+    my $filename;
+    if ($filename = &findINC($backendName.".pm")) {
+	# print " loading $filename\n";
+	eval {require "$filename"};
+    } elsif ($filename = &findINC("SVG/SVG2zinc/Backend",$backendName.".pm")) {
+	# print " loading $filename\n";
+	eval {require "$filename"};
+	$backendName = "SVG::SVG2zinc::Backend::$backendName";
     } else {
-	# SVG/SVG2zinc/Backend/$module.pm was found
-	$backendName = "SVG::SVG2zinc::Backend::".$backendName;
+	die "unable to find Backend $backendName in perl path @INC";
+    }
+    if ($@) {
+	die "while loading Backend $backendName:\n$@\n";
     }
 
-    my $params = "-in => $svgfile," . (join ", ", %args);
-    my $command = "$backendName->new($params)";
     $backend=$backendName->new(-in => $svgfile, %args);
 
-    $current_group = 1; # CM10 !!
-    
+    $current_group = $backend->_topgroup;
     $backend->fileHeader;
     my $parser = new XML::Parser(
 				 Style => 'SVG2zinc',
@@ -218,11 +210,15 @@ sub svg {
     # the % refers to the size of an including document
     undef $width if defined $attrs{width} and $attrs{width} =~ /%/ ;
     undef $height if defined $attrs{height} and $attrs{height}=~ /%/ ;
+#    print "WIDTH,HEIGHT = $width    $height\n";
     my $widthHeightTags="";
     if (defined $width and defined $height) {
-	$widthHeightTags = ", 'width=$width', 'height=$height'";
+	$widthHeightTags = ", 'width=" . &float2int($width) . 
+	    "', 'height=" . &float2int($height) . "'";
     }
-    
+    if (!@prev_contexts) { # we are in the very top svg group!
+	$widthHeightTags .= ", 'svg_top'";
+    }
     my $res = "->add('group',$current_group, -tags => [$name$widthHeightTags], -priority => 10";
     unshift @prev_contexts, \%current_context;
     my $prop;
@@ -1257,7 +1253,7 @@ sub analyze_style_hash {
 	    $res .= ", -filled => 0";
 	    delete $keyvalues{'fill-opacity'};
 	} elsif ( $fillOpacity != 100 ) {
-	    print "fillOpacity=$fillOpacity\n";
+#	    print "fillOpacity=$fillOpacity\n";
 	    if ( &existsGradient($color) ) {
 		# so, apply a transparency to a Tk::Zinc named gradient
 		my $newColor = &addTransparencyToGradient($color,$fillOpacity);
@@ -1619,7 +1615,7 @@ __END__
 
 =head1 NAME
 
-SVG::SVG2zinc - a module to display or convert svg files in perl modules or script, assuming you have Tk::Zinc.
+SVG::SVG2zinc - a module to display or convert svg files in scripts, classes, images...
 
 =head1 SYNOPSIS
 
@@ -1629,35 +1625,60 @@ SVG::SVG2zinc - a module to display or convert svg files in perl modules or scri
 			   -out => 'outfile',
 			   -verbose => $verbose,
 			   -namespace => 0|1,
+			   -prefix => 'string', 
 			   );
 
- # to generate a perl script: 
+ # to generate a Perl script: 
  &SVG::SVG2zinc::parsefile('file.svg','PerlScript', 
 			   -out => 'file.pl');
 
- # to generate a perl Class:
+ # to generate a Perl Class:
  &SVG::SVG2zinc::parsefile('file.svg','PerlClass', 
 			   -out => 'Class.pm');
 
  # to display a svgfile:
- &SVG::SVG2zinc::parse('file.svg', 'Display'); 
+ &SVG::SVG2zinc::parsefile('file.svg', 'Display'); 
 
  #To convert a svgfile in png/jpeg file:
- &SVG::SVG2zinc::parse('file.svg', 'Image', 
-		       -out => 'file.jpg');
+ &SVG::SVG2zinc::parsefile('file.svg', 'Image', 
+		           -out => 'file.jpg');
 
- # to generate a tcl script: 
+ # to generate a Tcl script: 
  &SVG::SVG2zinc::parsefile('file.svg','TclScript', 
 			   -out => 'file.tcl');
 
 
 =head1 DESCRIPTION
 
-Depending on the used Backend, &SVG::SVG2zinc::parse either generates a perl class,
-perl script or bitmap images or displays SVG files inside a Tk::Zinc widget.
+Depending on the used Backend, &SVG::SVG2zinc::parsefile either generates a Perl Class,
+Perl script, Tcl Script, bitmap images or displays SVG files inside a Tk::Zinc widget.
 
-SVG::SVG2zinc should be extended to generate tcl or python scripts and/or
-modules.
+SVG::SVG2zinc could be extended to generate Python scripts and/or
+classes, or other files, just by sub-classing SVG::SVG2zinc::Backend(3pm)
+
+==head1 HOW IT WORKS
+
+This converter creates some TkZinc items associated to most SVG tags.
+For example, <SVG> or <G> tags are transformed in TkZinc groups. <PATH>
+are converted in TkZinc curves.... many more to come...
+
+==head2 TkZinc items tags
+
+Every TkZinc item created by the parser get one or more tags. If the
+corresponding svg tag has an Id, this Id will be used as a tag, after
+some cleaning due to TkZinc limitation on tag values (no dot, star, etc...).
+If the corresponding svg tag has no Id, the parser add a tag of the
+following form : __<itemtype>__<integer>. If the parser is provided
+a B<-prefix> option, the prefix is prepended to the tag:
+<prefix>__<itemtype>__<integer>
+
+The TkZinc group associated to the top <SVG> tag has the following tag 'svg_top', as well as 'width=integer' 'heigth=integer' tags if width and height are defined in the top <SVG> tag. These tags can be used to find the group and to get its desired width and height.
+
+==head2 RunTime code
+
+There is currently on new Tk::Zinc method needed when executing perl code generated.
+This perl Tk::Zinc::adaptViewport function should be translated and included or
+imported in any script generated in an other scripting language (eg. Tcl or Python).
 
 =head1 BUGS and LIMITATIONS
 
@@ -1676,10 +1697,6 @@ Gradient Transformation is not possible in Tk::Zinc. May be it could be implemen
 =item B<Rounded Rectangles>
 
 Rectangles cannot have rounded corners in Tk::Zinc. Could be implemented, by producing curve item rather than rectangles in Tk::zinc. Should be implemented in a future release of Tk::Zinc  
-
-=item B<Skew and Matrix transforms>
-
-Skew and Matrix transforms are not yet available in Tk::Zinc 3.295. Hopefully they should be available in a future release. 
 
 =item B<Text and tspan tags>
 
@@ -1711,13 +1728,13 @@ CSS in external url is not yet implemented
 
 =item B<SVG animation and scripting>
 
-No animation is currently available, neither scripting in the SVG file. But Perl or Tcl are scripting languages, 
+No animation is currently available, neither scripting in the SVG file. But Perl or Tcl are scripting languages, are not they?
 
 =item B<switch tag>
 
 The SVG switch tag is only partly implemented, but should work in most situations
 
-=item href for images
+=item B<href for images>
 
 href for images can only reference a file in the same directory than the SVG source file.
 
@@ -1725,25 +1742,29 @@ href for images can only reference a file in the same directory than the SVG sou
 
 It was said there is still one hidden bug... but please patch and/or report it to the author! Any (simple ?)
 
-SVG file not correctly rendered by this module (except for limitations listed previously) could be send to the author with a little comment about the expected rendering.
+SVG file not correctly rendered by this module (except for limitations
+listed previously) could be send to the author with little comments
+about the expected rendering and observed differences.
 
 =head1 SEE ALSO
 
 svg2zinc.pl(1) a sample script using and demonstrating SVG::SVG2zinc
 
+SVG::SVG2zinc::Backend(3pm) to defined new backends.
+
 Tk::Zinc(3) TkZinc is available at www.openatc.org/zinc/
 
 =head1 AUTHORS
 
-Christophe Mertz <mertz@cena.fr>
+Christophe Mertz <mertz at intuilab dot com>
 
-many patches and extensions from Alexandre Lemort <lemort@intuilab.com>
+many patches and extensions from Alexandre Lemort <lemort at intuilab dot com>
 
-helps from Celine Schlienger <celine@intuilab.com> and Stéphane Chatty <chatty@intuilab.com>
+helps from Celine Schlienger <celine at intuilab dot com> and Stéphane Chatty <chatty at intuilab dot com>
 
 =head1 COPYRIGHT
 
-CENA (C) 2002-2003
+CENA (C) 2002-2004, IntuiLab (C) 2004
 
 This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
 

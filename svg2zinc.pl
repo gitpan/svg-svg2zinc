@@ -4,16 +4,17 @@
 #                   scripts, modules or images from SVG files
 #                   The result depends on the selected Backend
 # 
-#      Copyright (C) 2002-2003
+#      Copyright (C) 2002-2004
 #      Centre d'Études de la Navigation Aérienne
+#      IntuiLab 2004
 #
-#      Authors: Christophe Mertz <mertz@cena.fr>
+#      Authors: Christophe Mertz <mertz at intuilab at com>
 #
-# $Id: svg2zinc.pl,v 1.20 2003/10/17 16:20:18 mertz Exp $
+# $Id: svg2zinc.pl,v 1.22 2004/05/01 09:19:33 mertz Exp $
 #-----------------------------------------------------------------------------------
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -36,7 +37,7 @@ if (defined $ARGV[0]) {
     my $module = $backend;
     $module =~ s!::!\/!g ;
     if (!&findINC($backend.".pm") and !&findINC( "SVG/SVG2zinc/Backend/".$module.".pm")) {
-	&usage ("$backend not found as a module or as SVG::SVG2zinc::Backend::$backend");
+	&usage ("$backend not found as a module or as SVG::SVG2zinc::Backend::$backend in perl path: @INC");
     }
 } else {
     &usage ("required first parameter: Backend name") unless (defined $ARGV[0]);
@@ -219,11 +220,11 @@ TkZinc is available at www.openatc.org/zinc
 
 =head1 AUTHORS
 
-Christophe Mertz <mertz@cena.fr> with some help from Daniel Etienne <etienne@cena.fr>
+Christophe Mertz <mertz at intuilab dot com> with some help from Daniel Etienne <etienne at cena dot fr>
 
 =head1 COPYRIGHT
     
-CENA (C) 2002-2003
+CENA (C) 2002-2004 IntuiLab 2004
 
 This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
 

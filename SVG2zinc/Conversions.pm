@@ -7,7 +7,7 @@ use Carp;
 
 use vars qw( $VERSION @ISA @EXPORT );
 
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw( Exporter );
 
@@ -784,6 +784,12 @@ sub sizeConvert {
     } elsif ($value =~ /(.*)%/) {
 	return $1/100;   ## useful for coordinates using % 
 	                 ## in lienar gradient (x1,x2,y2,y2)
+    } elsif ($value =~ /(.*)em/) { # not yet implemented
+	&myWarn ("em unit not yet implemented in sizes");
+	return $value;
+    } elsif ($value =~ /(.*)ex/) { # not yet implemented
+	&myWarn ("ex unit not yet implemented in sizes");
+	return $value;
     } else {
 	return $value;
     }
@@ -803,12 +809,9 @@ sub transform {
     return () if !defined $str;
     &myWarn ("!!! Need an Id for applying a transformation\n"), return () if !defined $id;
     my @fullTrans;
-#    while ( $str =~ m/\s*([a-zA-Z])\s*([^a-zA-Z]*)\s*/g ) {
     while ($str  =~ m/\s*(\w+)\s*\(([^\)]*)\)\s*/g) {
-#	my ($trans, $params, $rest) = $str =~ /\s*(\w+)\s*\(([^\)]*)\)\s*(.*)/ ;
 	my ($trans, $params) = ($1,$2);
 	my @params = split (/[\s,]+/, $params);
-#	print "$id  $trans params : @params\n";
 	if ($trans eq 'translate') {
 	    $params[1] = 0 if scalar @params == 1; ## the 2nd paramter defaults to 0
 	    my $translation = "->translate($id," . join (",",@params) . ");"  ;
@@ -822,27 +825,17 @@ sub transform {
 	    my $scale = "->scale($id," . join (",",@params) . ");";
 	    push @fullTrans,$scale;
 	} elsif ($trans eq 'matrix') {
-            ## until Tk::Zinc offers an API to the transform matrix, 
-	    ## we try to treat the transform if it can be described as rotation, translation and scale
-	    ## this is not always possible!
-	    if ($params[1] <=0.03 and $params[2] <= 0.03) {
-		# ok! NO skew, no rotation!
-		if ($params[4] != 0 or $params[5] != 0) {
-		    # a translation
-		    my $translation = "->translate($id," . $params[4] . "," . $params[5] . ");"  ;
-		    push @fullTrans,$translation;
-# 		    print "MATRIX: translate ",$params[4] . "," . $params[5], "\n";
-		}
-		if ($params[0] != 1 or $params[3] != 1) {
-		    my $scale = "->scale($id," . $params[0] . "," . $params[3] . ");";
-		    push @fullTrans,$scale;
-#		    print "MATRIX: scale $scale\n";
-		}
-	    } else {
-		&myWarn ("!!! transformation $trans (". join (", ",@params) . ") with a skew NOT implemented\n");
-	    }
-	} elsif ($trans eq 'skew'){
-	    &myWarn ("!!! Transformation $trans NOT YET implemented\n");
+	    my $matrixParams = join ',',@params;
+	    my $matrix = "->tset($id, $matrixParams);";
+	    push @fullTrans, $matrix;
+	} elsif ($trans eq 'skewX'){
+	    my $skewX = "->skew($id, " . deg2rad($params[0]) . ",0);";
+#	    print "skewX=$skewX\n";
+	    push @fullTrans, $skewX;
+	} elsif ($trans eq 'skewY'){
+	    my $skewY = "->skew($id, 0," . deg2rad($params[0]) . ");";
+#	    print "skewY=$skewY\n";
+	    push @fullTrans, $skewY;
 	} else {
 	    &myWarn ("!!! Unknown transformation '$trans'\n");
 	}

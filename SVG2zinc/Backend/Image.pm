@@ -5,9 +5,9 @@ package SVG::SVG2zinc::Backend::Image;
 #	Copyright 2003
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com>
 #
-# $Id: Image.pm,v 1.3 2003/10/17 16:25:47 mertz Exp $
+# $Id: Image.pm,v 1.5 2004/05/01 09:19:33 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -15,7 +15,7 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -101,13 +101,15 @@ sub fileTail {
     my ($self) = @_;
     my $outfile = $self->{-out};
 
-    my $svgGroup = $zinc->find('withtag', '__svg__1');
-#    print "svgGroup=$svgGroup\n";
+    # to find the top group containing width and height
+    my $svgGroup = $zinc->find('withtag', 'svg_top') ; 
 
     my $tags = join " ", $zinc->gettags($svgGroup);
+#    print "svgGroup=$svgGroup  => $tags\n";
     my ($width) = $tags =~ /width=(\d+)/ ;
     my ($height) = $tags =~ /height=(\d+)/ ;
-    print "height => $height width => $width\n";
+#    print "height => $height width => $width\n";
+    
     $zinc->configure (-width => $width, -height => $height);
     $zinc->update;
 
@@ -119,7 +121,7 @@ sub fileTail {
     } elsif (defined $self->{-ratio}) {
 	$importParams=" -resize ".$self->{-ratio};
     }
-    print "importParams=$importParams\n";
+#    print "importParams=$importParams\n";
 
     ## following are for comments:
     my ($svg2zincPackage) = caller;
@@ -127,7 +129,7 @@ sub fileTail {
     my $svgfile = $self->{-in};
 
     my $command = "import -window " . $zinc->id . $importParams ." -comment 'created with SVG::SVG2zinc from $svgfile v$VERSION (c) CENA 2003 C.Mertz.' $outfile";
-    print "command=$command\n";
+#    print "command=$command\n";
     my $return = system ($command);
 
     if ($return) {
@@ -171,11 +173,11 @@ This backend generates images files from the content of a displayed Tk::Zinc win
 
 =head1 AUTHORS
 
-Christophe Mertz <mertz@cena.fr>
+Christophe Mertz <mertz at intuilab dot com>
 
 =head1 COPYRIGHT
     
-CENA (C) 2003
+CENA (C) 2003-2004 IntuiLab 2004
 
 This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
 

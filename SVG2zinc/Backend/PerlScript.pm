@@ -2,14 +2,14 @@ package SVG::SVG2zinc::Backend::PerlScript;
 
 #	Backend Class for SVG2zinc
 # 
-#	Copyright 2003
+#	Copyright 2003-2004
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com>
 #
 #       A concrete class for code generation for Perl Scripts
 #
-# $Id: PerlScript.pm,v 1.12 2003/10/17 16:25:47 mertz Exp $
+# $Id: PerlScript.pm,v 1.16 2004/05/01 09:19:34 mertz Exp $
 #############################################################################
 
 use strict;
@@ -20,7 +20,7 @@ use File::Basename;
 
 use vars qw( $VERSION @ISA  );
 @ISA = qw( SVG::SVG2zinc::Backend );
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/);
 
 
 sub treatLines {
@@ -65,13 +65,20 @@ my \$zinc = \$mw->Zinc(-width => \$WIDTH, -height => \$HEIGHT,
 		     -borderwidth => 0,
                      -backcolor => 'white', # why white?
 		     -render => $render,
-		      )->pack;
+		      )->pack(qw/-expand yes -fill both/);;
 ");
 
     $self->printLines(
 <<'HEADER'
-&Tk::Zinc::Debug::finditems($zinc);
-&Tk::Zinc::Debug::tree($zinc, -optionsToDisplay => '-tags', -optionsFormat => 'row');
+if (Tk::Zinc::Debug->can('init')) {
+    # for TkZinc >= 3.2.96
+    &Tk::Zinc::Debug::init($zinc, -optionsToDisplay => "-tags", -optionsFormat => "row");
+} else {
+    # for TkZinc <= 3.2.95
+    &Tk::Zinc::Debug::finditems($zinc);
+    &Tk::Zinc::Debug::tree($zinc, -optionsToDisplay => "-tags", -optionsFormat => "row");
+}
+
 my $top_group = 1; ###$zinc->add('group', 1);
 
 my $_zinc=$zinc;
@@ -240,11 +247,11 @@ SVG::SVG2zinc::Backend(3pm) and SVG::SVG2zinc(3pm)
 
 =head1 AUTHORS
 
-Christophe Mertz <mertz@cena.fr>
+Christophe Mertz <mertz at intuilab dot com>
 
 =head1 COPYRIGHT
     
-CENA (C) 2003
+CENA (C) 2003-2004 IntuiLab (C) 2004
 
 This program is free software; you can redistribute it and/or modify it under the term of the LGPL licence.
 

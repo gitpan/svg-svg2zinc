@@ -2,19 +2,19 @@ package SVG::SVG2zinc::Backend::Tcl;
 
 #	Backend Class for SVG2zinc
 # 
-#	Copyright 2003
+#	Copyright 2003-2004
 #	Centre d'Études de la Navigation Aérienne
 #
-#	Author: Christophe Mertz <mertz@cena.fr>
+#	Author: Christophe Mertz <mertz at intuilab dot com>
 #
 #       A module for code translation from perl to tcl generation
 #
-# $Id: Tcl.pm,v 1.1 2003/10/14 16:35:19 mertz Exp $
+# $Id: Tcl.pm,v 1.2 2004/05/01 09:19:34 mertz Exp $
 #############################################################################
 
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
 
 @ISA = qw( Exporter );
 @EXPORT = qw( perl2tcl );

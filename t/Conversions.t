@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 #
-# $Id: Conversions.t,v 1.4 2003/09/17 14:32:04 mertz Exp $
+# $Id: Conversions.t,v 1.5 2003/10/21 16:48:12 mertz Exp $
 # Author: Christophe Mertz
 #
 
@@ -14,7 +14,8 @@ use SVG::SVG2zinc::Conversions;
 
 BEGIN {
     if (!eval q{
-        use Test::More qw(no_plan);
+#        use Test::More qw(no_plan);
+        use Test::More => 60;
         1;
     }) {
         print "# tests only work properly with installed Test::More module\n";
@@ -51,12 +52,14 @@ is (&sizeConvert("1.1in"), 110 * $ratio, 'in');
 is (&sizeConvert("72pt"), 100 * $ratio, 'pt');
 is (&sizeConvert("6.6pc"), 110 * $ratio, 'pc');
 is (&sizeConvert("10%"), 0.1 * $ratio, '%');
+is (&sizeConvert("10.2"), 10, 'float');
+is (&sizeConvert("11.8"), 12, 'float');
 
 TODO:
     {
     local $TODO = 'conversions from em and ex units';
-	is (&sizeConvert("10em"), "???", 'em');
-	is (&sizeConvert("10ex"), "???", 'ex');
+	is (&sizeConvert("10em"), "10em", 'em');
+	is (&sizeConvert("10ex"), "10ex", 'ex');
     }
 
 diag ('############ opacity conversions');
