@@ -9,7 +9,7 @@ package SVG::SVG2zinc::Backend::PerlClass;
 #
 #       An concrete class for code generation for Perl Class
 #
-# $Id: PerlClass.pm,v 1.2 2003/10/10 14:30:57 mertz Exp $
+# $Id: PerlClass.pm,v 1.3 2003/10/17 16:25:47 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -18,19 +18,10 @@ use File::Basename;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
-
-sub new {
-    my ($class, %passed_options) = @_;
-    my $self = {};
-    bless $self, $class;
-    $self->_initialize(%passed_options);
-#    my $file = $self->{-svgfile}; print "file=$file=", $passed_options{-svgfile},"\n";
-    return $self;
-}
 
 
 sub treatLines {

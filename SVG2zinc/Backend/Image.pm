@@ -7,7 +7,7 @@ package SVG::SVG2zinc::Backend::Image;
 #
 #	Author: Christophe Mertz <mertz@cena.fr>
 #
-# $Id: Image.pm,v 1.2 2003/10/17 08:45:06 mertz Exp $
+# $Id: Image.pm,v 1.3 2003/10/17 16:25:47 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -15,7 +15,7 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -27,7 +27,6 @@ if ($@) {
 }
 
 sub new {
-
     # testing that 'import' is available
     # is this test portable?
     my $ret = `which import`;
@@ -150,7 +149,7 @@ SVG:SVG2zinc::Backend::Image - a backend class for generating image file from SV
 
 =head1 DESCRIPTION
 
-SVG:SVG2zinc::Backend::Image is a backend class for generating image file from SVG files.
+SVG:SVG2zinc::Backend::Image is a backend class for generating image file from SVG files. It uses the 'import' command included in the ImageMagick package.
 
 For more information, you should look at SVG:SVG2zinc::Backend(3pm).
 
@@ -165,6 +164,10 @@ The new method accepts parameters described in the SVG:SVG2zinc::Backend class a
 =head1 SEE ALSO
 
 SVG::SVG2zinc::Backend(3pm) and SVG::SVG2zinc(3pm)
+
+=head1 BUGS and LIMITATIONS
+
+This backend generates images files from the content of a displayed Tk::Zinc window. The size (in pixels) of the generated image is thus limited to the maximal size of a window on your system. 
 
 =head1 AUTHORS
 

@@ -10,7 +10,7 @@ package SVG::SVG2zinc::Backend::Print;
 #       An concrete class for code printing for Perl Scripts/Modules
 #       This Backend is for svg2zinc debug purpose mainly
 #
-# $Id: Print.pm,v 1.3 2003/09/09 14:35:59 mertz Exp $
+# $Id: Print.pm,v 1.4 2003/10/17 16:25:47 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -18,18 +18,10 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
-
-sub new {
-    my ($class, %passed_options) = @_;
-    my $self = {};
-    bless $self, $class;
-    $self->_initialize(%passed_options);
-    return $self;
-}
 
 sub treatLines {
     my ($self,@lines) = @_;

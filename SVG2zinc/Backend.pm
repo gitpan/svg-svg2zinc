@@ -11,7 +11,7 @@ package SVG::SVG2zinc::Backend;
 #       Concrete sub-classes can generate code for perl (script / module), tcl,
 #       printing, or direct execution
 #
-# $Id: Backend.pm,v 1.8 2003/10/17 08:38:52 mertz Exp $
+# $Id: Backend.pm,v 1.9 2003/10/17 16:20:20 mertz Exp $
 #############################################################################
 
 use strict;
@@ -19,7 +19,7 @@ use Carp;
 use FileHandle;
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
 
 sub new {
     my ($class, %passed_options) = @_;
@@ -30,6 +30,7 @@ sub new {
 }
 
 my %new_options = (
+		   -render => 1,
 		   -out => "",
 		   -in => "",
 		   -verbose => "",
@@ -57,8 +58,6 @@ sub _initialize {
 		carp ("unable to open " . $out);
 	    }
 	}
-    } else {
-	croak("undefined mandatory -out filename");
     }
     return $self;
 }
@@ -76,6 +75,8 @@ sub printLines {
 	foreach my $l (@lines) {
 	    print $fh "$l\n";
 	}
+    } else {
+	carp "printLines cannot print if no outfile has been given\n";
     }
 }
 
@@ -198,11 +199,15 @@ Generates the header in the out file, if needed. This method should be called ju
 
 =item B<treatLines>
 
-Processes the given arguments as line of code. The arguments are very close to Tk::Zinc perl code. When creating a new backend, using the -verbose option can help understanding what are exactly these arguments.
+Processes the given arguments as lines of code. The arguments are very close to Tk::Zinc perl code. When creating a new backend, using the B<Print> backend can help understanding what are exactly these arguments.
 
 =item B<comment>
 
 Processes the given arguments as comments. Depending on the backend, this method must be redefined so that arguments are treated as comments, or just skipped.
+
+=item B<printLines>
+
+Print in an outfile the given arguments as lines of text. This method should not be re-defined, but used by any Backend which generates code.
 
 =item B<fileTail>
 

@@ -7,7 +7,7 @@ package SVG::SVG2zinc::Backend::Display;
 #
 #	Author: Christophe Mertz <mertz@cena.fr>
 #
-# $Id: Display.pm,v 1.5 2003/10/17 08:45:06 mertz Exp $
+# $Id: Display.pm,v 1.6 2003/10/17 16:25:47 mertz Exp $
 #############################################################################
 
 use SVG::SVG2zinc::Backend;
@@ -15,7 +15,7 @@ use SVG::SVG2zinc::Backend;
 @ISA = qw( SVG::SVG2zinc::Backend );
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -54,10 +54,9 @@ sub _initialize {
     my $mw = MainWindow->new();
     my $svgfile = $self->{-in};
     $mw->title($svgfile);
-    my $render = (defined $passed_options{-render}) ? $passed_options{-render} : 1;
     $zinc = $mw->Zinc(-width => $WIDTH, -height => $HEIGHT,
 		      -borderwidth => 0,
-		      -render => $render,
+		      -render => $self->{-render},
 		      -backcolor => "white", ## why white?
 		      )->pack(qw/-expand yes -fill both/);
     &Tk::Zinc::Debug::finditems($zinc);

@@ -12,7 +12,7 @@ package SVG::SVG2zinc;
 #          Celine Schlienger <celine@intuilab.com>
 #          Stéphane Chatty <chatty@intuilab.com>
 #
-# $Id: SVG2zinc.pm,v 1.35 2003/10/17 08:34:42 mertz Exp $
+# $Id: SVG2zinc.pm,v 1.37 2003/10/17 16:30:29 mertz Exp $
 #############################################################################
 #
 # this is the main module of the a converter from SVG file
@@ -35,10 +35,10 @@ use File::Basename;
 use SVG::SVG2zinc::Conversions;
 
 use vars qw($VERSION $REVISION @ISA @EXPORT);
-@EXPORT = qw( parsefile findINC);
+@EXPORT = qw( parsefile findINC );
 
-$REVISION = q$Revision: 1.35 $ ;
-$VERSION = "0.07";
+$REVISION = q$Revision: 1.37 $ ;
+$VERSION = "0.08";
 
 # to suppress some stupid warning usefull for debugging only
 my $warn=0;
@@ -143,10 +143,13 @@ sub parsefile {
 
     my $module = $backendName;
     $module =~ s!::!\/!g ;
+    if (!&findINC($backendName.".pm") and !&findINC( "SVG/SVG2zinc/Backend/".$module.".pm")) {
+	die "$backendName not found as a module or as SVG::SVG2zinc::Backend::$backendName";
+    }
     eval {require "SVG/SVG2zinc/Backend/$module.pm"};
     if ($@) {
 	# SVG/SVG2zinc/Backend/$module.pm not found (or may be error?!)
-	    print "$@\n";
+	# print "$@\n";
 	if ($@ =~ /^syntax/) {
 	    print "$@\n";
 	    exit;

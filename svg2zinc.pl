@@ -9,11 +9,11 @@
 #
 #      Authors: Christophe Mertz <mertz@cena.fr>
 #
-# $Id: svg2zinc.pl,v 1.19 2003/10/17 08:30:53 mertz Exp $
+# $Id: svg2zinc.pl,v 1.20 2003/10/17 16:20:18 mertz Exp $
 #-----------------------------------------------------------------------------------
 
 use vars qw( $VERSION);
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/);
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/);
 
 use strict;
 use Carp;
@@ -68,6 +68,17 @@ if ($#ARGV >= 0) {
 my @outParam;
 if ($#ARGV >= 0) {
     @outParam = ( -out => shift @ARGV);
+}
+
+if (@outParam eq 0) {
+    if ( $backend eq "PerlScript" or
+	 $backend eq "TclScript" or
+	 $backend eq "PerlClass" or
+	 $backend eq "Image" ) {
+	&usage ("The backend $backend requires and outfile as last parameter of $0");
+    } elsif ($backend ne "Display" and $backend ne "Print") {
+	warn "You did not specify an out file for the user defined Backend '$backend'. This may be an error\n";
+    }
 }
 
 # print "out = @outParam\n";

@@ -1,3 +1,15 @@
+svg2zinc-perl (0.8) unstable; urgency=low
+
+  * unknown -render options appeared for some backend
+  * -out options was falsely required by Display and Print backend
+  * suppression of some unusefull prints
+  * better testing of the existence of userdefined Backend
+  * svg2zinc.pl now test if here is an outfile required by some Backend,
+    and warn in the case of user defined Backend
+  * slight doc enhancements
+
+ -- Christophe Mertz <mertz@tls.cena.fr>  Fri, 17 Oct 2003 15:56:48 +0200
+
 svg2zinc-perl (0.7) unstable; urgency=low
 
   * BEWARE: Tk::Zinc must be 3.295 or higher. but no dependancies

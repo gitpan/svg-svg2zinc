@@ -9,7 +9,7 @@ package SVG::SVG2zinc::Backend::PerlScript;
 #
 #       A concrete class for code generation for Perl Scripts
 #
-# $Id: PerlScript.pm,v 1.11 2003/10/17 08:46:38 mertz Exp $
+# $Id: PerlScript.pm,v 1.12 2003/10/17 16:25:47 mertz Exp $
 #############################################################################
 
 use strict;
@@ -20,16 +20,7 @@ use File::Basename;
 
 use vars qw( $VERSION @ISA  );
 @ISA = qw( SVG::SVG2zinc::Backend );
-($VERSION) = sprintf("%d.%02d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
-
-sub new {
-    my ($class, %passed_options) = @_;
-    my $self = {};
-    bless $self, $class;
-    $self->{-render} = defined $passed_options{-render} ? delete $passed_options{-render} : 1;
-    $self->_initialize(%passed_options);
-    return $self;
-}
+($VERSION) = sprintf("%d.%02d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
 
 
 sub treatLines {
@@ -42,7 +33,7 @@ sub treatLines {
 
 sub fileHeader {
     my ($self) = @_;
-    my $svgfile = $self->{-in}; # print "file=$svgile\n";
+    my $svgfile = $self->{-in};
     my ($svg2zincPackage) = caller;
     my $VERSION = eval ( "\$".$svg2zincPackage."::VERSION" );
     $self->printLines("#!/usr/bin/perl -w
@@ -68,7 +59,7 @@ HEADER
 \$mw->title('$svgfile');
 my (\$WIDTH, \$HEIGHT) = (800, 600);
 " );
-    my $render = $self->{-render}; print "render=$render\n";
+    my $render = $self->{-render};
     $self->printLines("
 my \$zinc = \$mw->Zinc(-width => \$WIDTH, -height => \$HEIGHT,
 		     -borderwidth => 0,
